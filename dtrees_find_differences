@@ -18,10 +18,8 @@ my_data = [['slashdot', 'USA', 'yes', 18, 'None'],
 
 def divideset(rows, column, value):
     split_func = None
-    if isinstance(value, int) or isinstance(value, float):
-        split_func = lambda row: row[column] >= value
-    else:
-        split_func = lambda row: row[column] == value
+    
+    split_func = lambda row: row[column] == value
 
     set1 = [row for row in rows if split_func(row)]
     set2 = [row for row in rows if not split_func(row)]
@@ -97,11 +95,17 @@ def info_gain2(rows):
 
             p = float(len(set1))/len(rows)
             gain = ent(rows) - p*ent(set1) - (1 - p)*ent(set2)
+            print('items is %r' %value)
             print('features is %r, probability is %r, ent1 is %r, ent2 is %r' %(col,p,ent(set1),ent(set2)))
-            print('gain2 is %r' %gain)
+            print('gain is %r' %gain)
             print('ent_origin is %r \n' %ent(rows))
             if gain > best_gain:
                 best_gain = gain
                 best_criteria = (col, value)
                 best_sets = (set1, set2)
     return(best_gain, best_criteria)
+
+print(info_gain(my_data))
+print('---------------------------------------------')
+print(info_gain2(my_data))
+
