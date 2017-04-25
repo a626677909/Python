@@ -1,0 +1,107 @@
+from math import log
+my_data = [['slashdot', 'USA', 'yes', 18, 'None'],
+           ['google', 'France', 'yes', 23, 'Premium'],
+           ['digg', 'USA', 'yes', 24, 'Basic'],
+           ['kiwitobes', 'France', 'yes', 23, 'Basic'],
+           ['google', 'UK', 'no', 21, 'Premium'],
+           ['(direct)', 'New Zealand', 'no', 12, 'None'],
+           ['(direct)', 'UK', 'no', 21, 'Basic'],
+           ['google', 'USA', 'no', 24, 'Premium'],
+           ['slashdot', 'France', 'yes', 19, 'None'],
+           ['digg', 'USA', 'no', 18, 'None'],
+           ['google', 'UK', 'no', 18, 'None'],
+           ['kiwitobes', 'UK', 'no', 19, 'None'],
+           ['digg', 'New Zealand', 'yes', 12, 'Basic'],
+           ['google', 'UK', 'yes', 18, 'Basic'],
+           ['kiwitobes', 'France', 'yes', 19, 'Basic']]
+
+
+def divideset(rows, column, value):
+    split_func = None
+    if isinstance(value, int) or isinstance(value, float):
+        split_func = lambda row: row[column] >= value
+    else:
+        split_func = lambda row: row[column] == value
+
+    set1 = [row for row in rows if split_func(row)]
+    set2 = [row for row in rows if not split_func(row)]
+    return (set1, set2)
+
+def uniquecounts(rows):
+    results = {}
+    for row in rows:
+        r = row[len(row) - 1]
+        if r not in results:results[r] = 0
+        results[r] += 1
+    return results
+
+def ent(rows):
+    total_nums = len(rows)
+    dic = {}
+    for row in rows:
+        current_result = row[-1]
+        if current_result not in dic.keys():
+            dic[current_result] = 0
+        dic[current_result] += 1
+    ent = 0.0
+    for item in dic.values():
+        p = float(item)/total_nums
+        ent -= p * log(p, 2)
+    return ent
+
+def info_gain(rows):
+    features = len(rows[0]) - 1
+    ent_origin  = ent(rows)
+    best_gain = 0.0
+    
+    best_gain_num = 100
+    for i in range(features):
+        min_ent = float("inf")
+        sum_ent = 0.0
+        dic = {}
+
+        for row in rows:
+            dic[row[i]] = 1
+        print(dic)
+
+        for items, values in dic.items():
+            
+            set_items1, set_items2 = divideset(rows, i, items)
+            p = float(len(set_items1))/len(rows)
+            ent_items = ent(set_items1)
+            sum_ent += p * ent_items
+            if(ent_items < min_ent):
+                min_ent = ent_items
+                max_items = items
+            print('sum is %r, probability is %r, ent is %r, min_ent is %r'%(sum_ent, p, ent_items, min_ent))
+        gain = ent_origin - sum_ent
+        print('gain is %r, min_ent is %r' %(gain, min_ent) )
+        print('ent_origin is %r \n' %ent_origin)
+        if(gain > best_gain):
+            best_gain = gain
+            best_gain_num = max_items
+    return (best_gain, best_gain_num)
+
+def info_gain2(rows):
+    best_gain = 0.0
+    best_criteria = None
+    best_sets = None
+
+    features = len(rows[0]) - 1
+    for col in range(0, features):
+        col_values = {}
+        for row in rows:
+            col_values[row[col]] = 1
+        for value in col_values.keys():
+            set1, set2 = divideset(rows, col, value)
+
+            p = float(len(set1))/len(rows)
+            gain = ent(rows) - p*ent(set1) - (1 - p)*ent(set2)
+            print('features is %r, probability is %r, ent1 is %r, ent2 is %r' %(col,p,ent(set1),ent(set2)))
+            print('gain2 is %r' %gain)
+            print('ent_origin is %r \n' %ent(rows))
+            if gain > best_gain:
+                best_gain = gain
+                best_criteria = (col, value)
+                best_sets = (set1, set2)
+    return(best_gain, best_criteria)
